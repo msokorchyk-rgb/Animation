@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<title>Покадрова анімація</title>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.6.0/lib/p5.js"></script>
+<style>
+body { display:flex; flex-direction:column; align-items:center; font-family:sans-serif; }
+canvas { border:1px solid #000; margin-top:10px; }
+.controls { margin-top:10px; }
+</style>
+</head>
+<body>
+<div class="controls">
+  <label>Масштаб: <span id="scaleValue">1</span></label>
+  <input type="range" id="scaleSlider" min="0.5" max="3" step="0.1" value="1">
+  <button id="flipBtn">Flip</button>
+  <br>
+  <button onclick="setState('stand')">Стояти (1)</button>
+  <button onclick="setState('walk')">Крокувати (2)</button>
+  <button onclick="setState('run')">Бігти (3)</button>
+</div>
+
+<script>
+let currentFrame = 0;
+let frameCountTime = 0;
+let fps = 1;
+let scaleFactor = 1;
+let flipX = 1; 
+let state = 'stand';
+const totalFrames = 6;
+
+function setup() {
+  createCanvas(600, 400);
+  frameRate(60);
+
+  const slider = document.getElementById('scaleSlider');
+  const scaleText = document.getElementById('scaleValue');
+  slider.addEventListener('input', ()=>{
+    scaleFactor = parseFloat(slider.value);
+    scaleText.textContent = scaleFactor;
+  });
+
+  document.getElementById('flipBtn').addEventListener('click', ()=>{
+    flipX *= -1;
+  });
+}
+
+function setState(s){
+  state = s;
+  if(s==='stand') fps = 1;      
+  if(s==='walk') fps = 8;      
+  if(s==='run') fps = 16;       
+}
+
+function draw() {
+  background(200, 220, 255);
+
+  frameCountTime++;
+  if(frameCountTime >= 60 / fps){
+    currentFrame = (currentFrame + 1) % totalFrames;
+    frameCountTime = 0;
+  }
+
+  push();
+  translate(width/2, height/2);
+  scale(flipX*scaleFactor, scaleFactor);
+  drawCharacter(currentFrame, state);
+  pop();
+}
+
+function drawCharacter(frame, state){
+  let gfx = createGraphics(100,150);
+  gfx.background(0,0);
+  gfx.fill(30,144,255);
+  gfx.rect(40, 50, 20, 60, 5);
+  gfx.fill(255,224,189);
+  gfx.ellipse(50, 30, 30, 30);
+  gfx.fill(0);
+  gfx.ellipse(43,28,5,5);
+  gfx.ellipse(57,32,5,5);
+  gfx.stroke(200,0,0);
+  gfx.strokeWeight(2);
+  gfx.line(45,40,55,38);
+  gfx.stroke(0);
+  gfx.strokeWeight(3);
+
+  let offsets = [0, 3, -3, 3, -3, 0];
+  let offset = 0;
+  if(state==='walk') offset = offsets[frame];
+  if(state==='run') offset = offsets[frame]*2;
+
+  gfx.line(40, 60, 40 - 5 + offset, 80);
+  gfx.line(60, 60, 60 + 5 - offset, 80);
+  gfx.line(45, 110, 45 - 5 + offset, 140);
+  gfx.line(55, 110, 55 + 5 - offset, 140);
+
+  imageMode(CENTER);
+  image(gfx, 0, 0);
+
+  noFill();
+  stroke(255,0,0);
+  ellipse(0,50,gfx.width,gfx.height-30);
+}
+</script>
+</body>
+</html>
